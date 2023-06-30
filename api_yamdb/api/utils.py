@@ -1,8 +1,12 @@
 from django.core.mail import send_mail
-from django.conf import settings
+from users.constants import YAMDB_EMAIL
 
 
-def send_confirmation_email(email, confirmation_code):
-    subject = 'Код подтверждения для регистрации'
-    message = f'Ваш код подтверждения: {confirmation_code}'
-    send_mail(subject, message, settings.EMAIL_HOST_USER, [email])
+def send_confirmation_code(email, confirmation_code):
+    """Отправка кода подтвержления на электроную почту."""
+    send_mail(
+        subject='Код подтверждения',
+        message=f'Код подтверждения регистрации: {confirmation_code}',
+        from_email=YAMDB_EMAIL,
+        recipient_list=(email,),
+        fail_silently=False,)
