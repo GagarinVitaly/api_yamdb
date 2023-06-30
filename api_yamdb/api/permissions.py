@@ -6,11 +6,10 @@ class SuperUserOrAdmin(permissions.BasePermission):
     администратором или суперпользователем."""
 
     def has_permission(self, request, view):
-        return (
-            request.user.is_authnticated
-            and (request.user.is_superuser
-                 or request.user.is_staff
-                 or request.user.is_admin))
+        return (request.user.is_authenticated and (
+                request.user.is_superuser
+                or request.user.is_staff
+                or request.user.is_admin))
 
 
 class ReadOnly(permissions.BasePermission):

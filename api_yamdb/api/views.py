@@ -27,10 +27,10 @@ from users.models import User
 from .utils import send_confirmation_code
 
 
-def get_token(user):
-    """Запрос токена."""
-    refresh = RefreshToken.for_user(user)
-    return {'token': str(refresh.access_token)}
+#def get_token(user):
+#    """Запрос токена."""
+#    refresh = RefreshToken.for_user(user)
+#    return {'token': str(refresh.access_token)}
 
 
 class SignUpViewSet(viewsets.ViewSet):
@@ -56,53 +56,50 @@ class SignUpViewSet(viewsets.ViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class TokenView(APIView):
+#class TokenView(APIView):
 
-    def post(self, request):
-        serializer = TokenSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(
-                serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        username = serializer.validated_data.get('username')
-        confirmation_code = serializer.validated_data.get('confirmation_code')
-        try:
-            user = User.objects.get(username=username)
-        except ObjectDoesNotExist:
-            return Response(
-                {'username': ['Пользователь не найден']},
-                status=status.HTTP_404_NOT_FOUND)
-        if user.confirmation_code != confirmation_code:
-            return Response(
-                {'confirmation_code': ['Недействительный код подтверждения']},
-                status=status.HTTP_400_BAD_REQUEST)
-        serializer.save()
-        token = serializer.data.get('token')
-        return Response({'token': token}, status=status.HTTP_200_OK)
+#    def post(self, request):
+#        serializer = TokenSerializer(data=request.data)
+#        if not serializer.is_valid():
+#            return Response(
+#                serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#        username = serializer.validated_data.get('username')
+#        confirmation_code = serializer.validated_data.get('confirmation_code')
+#        try:
+#            user = User.objects.get(username=username)
+#        except ObjectDoesNotExist:
+#            return Response(
+#                {'username': ['Пользователь не найден']},
+#                status=status.HTTP_404_NOT_FOUND)
+#        if user.confirmation_code != confirmation_code:
+#            return Response(
+#                {'confirmation_code': ['Недействительный код подтверждения']},
+#                status=status.HTTP_400_BAD_REQUEST)
+#        serializer.save()
+#        token = serializer.data.get('token')
+#        return Response({'token': token}, status=status.HTTP_200_OK)
 
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    #permission_classes = (SuperUserOrAdmin,)
+    permission_classes = (SuperUserOrAdmin,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
     lookup_field = 'username'
-    http_method_names = ('get', 'post', 'delete', 'path')
+    http_method_names = ('get', 'post', 'delete', 'patch')
 
     @action(
         detail=False,
-        methods=(
-            'get',
-            'patch',),
-        permission_classes=(IsAuthenticated,),
-        url_path='me')
+        methods=['patch', 'get'],
+        permission_classes=(IsAuthenticated,),)
     def me(self, request):
-        serializer = UserSerializer(
-            request.user, partial=True, data=request.data)
-        if not serializer.is_valid():
-            return Response(
-                serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        user = get_object_or_404(User, username=self.request.user)
+        serializer = UserProfileSerializer(user)
         if request.method == 'PATCH':
+            serializer = UserProfileSerializer(
+                user, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
             serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -158,19 +155,27 @@ class UserViewSet(viewsets.ModelViewSet):
 #        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-#class TokenViewSet(viewsets.ViewSet):
-    #serializer_class = TokenSerializer
+class TokenViewSet(viewsets.ViewSet):
+    serializer_class = TokenSerializer
 
-    #def create(self, request):
-        #serializer = TokenSerializer(data=request.data)
-        #serializer.is_valid(raise_exception=True)
-        #username = serializer.validated_data['username']
-        #confirmation_code = serializer.validated_data['confirmation_code']
-        #user = User.objects.filter(username=username).first()
+    def create(self, request):
+        serializer = TokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        username = serializer.validated_data['username']
+        confirmation_code = serializer.validated_data['confirmation_code']
+        user = User.objects.filter(username=username).first()
         #if not user or not user.check_confirmation_code(confirmation_code):
-            #return Response(
-                #'detail': 'Неверные данные'},
-                #status=status.HTTP_400_BAD_REQUEST)
-        #refresh = RefreshToken.for_user(user)
-        #token = str(refresh.access_token)
-        #return Response({'token': token}, status=status.HTTP_200_OK)
+        #    return Response(
+        #        {'detail': 'Неверные данные'},
+        #        status=status.HTTP_400_BAD_REQUEST)
+        if not user:
+            return Response(
+                {'detail': 'Пользователь не найден'},
+                status=status.HTTP_404_NOT_FOUND)
+        if not user.check_confirmation_code(confirmation_code):
+            return Response(
+                {'detail': 'Неверный код подтверждения'},
+                status=status.HTTP_400_BAD_REQUEST)
+        refresh = RefreshToken.for_user(user)
+        token = str(refresh.access_token)
+        return Response({'token': token}, status=status.HTTP_200_OK)

@@ -68,11 +68,13 @@ class TokenSerializer(serializers.Serializer):
 
 class UserProfileSerializer(UserSerializer):
     """Сериализатор профиля пользователя."""
-    first_name = serializers.CharField(max_length=149)
-    last_name = serializers.CharField(max_length=149)
+    role = serializers.CharField(read_only=True)
 
-    class Meta(UserSerializer.Meta):
-        read_only_fields = ('role',)
+    #first_name = serializers.CharField(max_length=149)
+    #last_name = serializers.CharField(max_length=149)
+
+    #class Meta(UserSerializer.Meta):
+        #read_only_fields = ('role',)
 
 #from rest_framework import serializers
 #from users.constants import (
