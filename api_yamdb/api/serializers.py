@@ -1,11 +1,56 @@
 from django.shortcuts import get_object_or_404
 
 from rest_framework import serializers
-# from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError
 from rest_framework.validators import UniqueValidator
-# from api_yamdb.users.models import User
+from api_yamdb.users.models import User
 
 from reviews.models import Category, Genre, Title, Review, Comment
+
+from rest_framework_simplejwt.tokens import RefreshToken
+
+
+class TokenSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True)
+    confirmation_code = serializers.CharField(required=True)
+    email = serializers.EmailField(required=True)
+
+    def validate(self, attrs):
+        email = attrs['email']
+        username = attrs['username']
+        confirmation_code = attrs['confirmation_code']
+
+        user = get_object_or_404(User, email=email, username=username)
+        if user.confirmation_code != confirmation_code:
+            raise serializers.ValidationError('Некорректный код подтверждения')
+
+        refresh = RefreshToken.for_user(user)
+
+        return {'access_token': str(refresh.access_token)}
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'first_name', 'last_name', 'bio', 'role')
+
+    def validate_username(self, value):
+        if value == 'me':
+            raise serializers.ValidationError('Нельзя использовать "me" в качестве имени пользователя')
+        return value
+
+    def update(self, instance, validated_data):
+        instance.username = validated_data.get('username', instance.username)
+        instance.email = validated_data.get('email', instance.email)
+        instance.first_name = validated_data.get('first_name', instance.first_name)
+        instance.last_name = validated_data.get('last_name', instance.last_name)
+        instance.bio = validated_data.get('bio', instance.bio)
+
+        if self.context['request'].user.is_superuser:
+            instance.role = validated_data.get('role', instance.role)
+
+        instance.save()
+        return instance
 
 
 class UniqueSlugMixin(serializers.Serializer):
