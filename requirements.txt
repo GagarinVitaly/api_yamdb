@@ -8,7 +8,7 @@ colorama==0.4.6
 cryptography==41.0.1
 defusedxml==0.7.1
 Django==3.2
-django-filter==2.4.0
+django-filter==23.2
 django-templated-mail==1.1.1
 djangorestframework==3.12.4
 djangorestframework-simplejwt==5.2.2
@@ -37,5 +37,5 @@ social-auth-app-django==5.2.0
 social-auth-core==4.4.2
 sqlparse==0.4.4
 toml==0.10.2
-typing_extensions==4.6.3
+typing_extensions==4.7.0
 urllib3==1.26.16
