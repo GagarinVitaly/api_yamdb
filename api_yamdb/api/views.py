@@ -32,7 +32,6 @@ from api.serializers import (
     UserProfileSerializer)
 from reviews.models import (
     Category,
-    Comment,
     Genre,
     Review,
     Title,)
