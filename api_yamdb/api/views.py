@@ -1,5 +1,4 @@
 from django.db.models import Avg
-from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 
 from django_filters import CharFilter, FilterSet, NumberFilter
@@ -8,16 +7,15 @@ from rest_framework.decorators import action
 from rest_framework.mixins import (
     CreateModelMixin,
     DestroyModelMixin,
-    ListModelMixin, )
+    ListModelMixin,)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.viewsets import GenericViewSet
 
 from api.permissions import (
     IsAdminOrReadOnly,
     IsAuthorModeratorAdminOrReadOnly,
-    SuperUserOrAdmin, )
+    SuperUserOrAdmin,)
 from api.serializers import (
     CategorySerializer,
     CommentSerializer,
@@ -31,58 +29,30 @@ from api.serializers import (
     UserProfileSerializer)
 from reviews.models import (
     Category,
+    Comment,
     Genre,
     Review,
-    Title, )
+    Title,)
 from users.models import User
-from users.constants import MESSAGE
+from .utils import send_confirmation_code, get_token_for_user
 
 
 class SignUpViewSet(viewsets.ViewSet):
     """ViewSet для регистрации пользователя"""
     queryset = User.objects.all()
-    serializer_class = UserSerializer
 
     @action(
         detail=False,
-        methods=['post'], )
+        methods=['post'],)
     def create(self, request):
         serializer = SignUpSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        email = serializer.validated_data['email']
-        username = serializer.validated_data['username']
+        email = serializer.data['email']
+        username = serializer.data['username']
         user, _ = User.objects.get_or_create(email=email, username=username)
-        user.email_user(
-            "Confirmation code",
-            MESSAGE.format(
-                user=user.username,
-                token=default_token_generator.make_token(user),
-            ),
-        ),
-        return Response(request.data, status=status.HTTP_200_OK)
-
-
-class TokenViewSet(viewsets.ViewSet):
-    queryset = User.objects.all()
-    serializer_class = TokenSerializer
-
-    def create(self, request):
-        serializer = TokenSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        username = serializer.validated_data.get('username')
-        confirmation_code = request.data.get('csrfmiddlewaretoken')
-        user = get_object_or_404(User, username=username)
-        if not default_token_generator.check_token(user, confirmation_code):
-            return Response(
-                "Пользователь или код подтверждения - не совпадают",
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        refresh = RefreshToken.for_user(user)
-        return Response(
-            {
-                "access": str(refresh.access_token),
-            }
-        )
+        user.confirmation_code = send_confirmation_code(user)
+        user.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -97,7 +67,7 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(
         detail=False,
         methods=['patch', 'get'],
-        permission_classes=(IsAuthenticated,), )
+        permission_classes=(IsAuthenticated,),)
     def me(self, request):
         user = get_object_or_404(User, username=self.request.user)
         serializer = UserProfileSerializer(user)
@@ -107,6 +77,22 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class TokenViewSet(viewsets.ViewSet):
+
+    def create(self, request):
+        serializer = TokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        username = serializer.validated_data['username']
+        confirmation_code = serializer.validated_data['confirmation_code']
+        user = get_object_or_404(User, username=username)
+        if user.confirmation_code != confirmation_code:
+            return Response(
+                {"confirmation_code": ["Неверный код подтверждения"]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return Response(get_token_for_user(user), status=status.HTTP_200_OK)
 
 
 class CreateDestroyListMixin(

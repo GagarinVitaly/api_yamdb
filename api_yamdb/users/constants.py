@@ -1,5 +1,6 @@
+MAX_LEN_CODE = 100
 MAX_LEN_EMAIL: int = 90
-MAX_LEN_NAME: int = 254
+MAX_LEN_NAME: int = 256
 MAX_LEN_SLUG: int = 50
 MAX_LEN_USERNAME: int = 90
 MAX_LEN_ROLE: int = 20
@@ -10,4 +11,3 @@ YAMDB_EMAIL = 'yamdb@yandex.ru'
 USER = 'user'
 MODERATOR = 'moderator'
 ADMIN = 'admin'
-MESSAGE = "Ваш логин {user}, код подтверждения {token}"
