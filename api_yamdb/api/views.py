@@ -9,7 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.mixins import (
     CreateModelMixin,
     DestroyModelMixin,
-    ListModelMixin,)
+    ListModelMixin, )
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
@@ -18,7 +18,7 @@ from rest_framework.viewsets import GenericViewSet
 from api.permissions import (
     IsAdminOrReadOnly,
     IsAuthorModeratorAdminOrReadOnly,
-    SuperUserOrAdmin,)
+    SuperUserOrAdmin, )
 from api.serializers import (
     CategorySerializer,
     CommentSerializer,
@@ -34,9 +34,10 @@ from reviews.models import (
     Category,
     Genre,
     Review,
-    Title,)
+    Title, )
 from users.models import User
 from .utils import send_confirmation_code
+from users.constants import MESSAGE
 
 
 class SignUpViewSet(viewsets.ViewSet):
@@ -46,20 +47,47 @@ class SignUpViewSet(viewsets.ViewSet):
 
     @action(
         detail=False,
-        methods=['post'],)
+        methods=['post'], )
     def create(self, request):
         serializer = SignUpSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data['email']
         username = serializer.validated_data['username']
         user, _ = User.objects.get_or_create(email=email, username=username)
-        confirmation_code = get_random_string(8)
-        user.confirmation_code = confirmation_code
-        user.save()
-        send_confirmation_code(
-            email=user.email,
-            confirmation_code=confirmation_code)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        user.email_user(
+            "Confirmation code",
+            MESSAGE.format(
+                user=user.username,
+                token=default_token_generator.make_token(user),
+            ),
+        ),
+        return Response(request.data, status=status.HTTP_200_OK)
+
+
+class TokenViewSet(viewsets.ViewSet):
+    queryset = User.objects.all()
+
+    serializer_class = TokenSerializer
+
+    def create(self, request):
+        serializer = TokenSerializer(data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+
+        username = serializer.validated_data['username']
+
+        confirmation_code = serializer.validated_data['confirmation_code']
+
+        user = get_object_or_404(User, username=username)
+
+        if not default_token_generator.check_token(user, confirmation_code):
+            message = {'confirmation_code': 'Код подтверждения невалиден'}
+
+            return Response(message, status=status.HTTP_400_BAD_REQUEST)
+
+        message = {'token': str(AccessToken.for_user(user))}
+
+        return Response(message, status=status.HTTP_200_OK)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -74,7 +102,7 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(
         detail=False,
         methods=['patch', 'get'],
-        permission_classes=(IsAuthenticated,),)
+        permission_classes=(IsAuthenticated,), )
     def me(self, request):
         user = get_object_or_404(User, username=self.request.user)
         serializer = UserProfileSerializer(user)
@@ -84,23 +112,6 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-class TokenViewSet(viewsets.ViewSet):
-    queryset = User.objects.all()
-    serializer_class = TokenSerializer
-
-    def create(self, request):
-        serializer = TokenSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        username = serializer.validated_data.get('username')
-        confirmation_code = serializer.validated_data.get('confirmation_code')
-        user = get_object_or_404(User, username=username)
-        if not default_token_generator.check_token(user, confirmation_code):
-            message = {'confirmation_code': 'Код подтверждения невалиден'}
-            return Response(message, status=status.HTTP_400_BAD_REQUEST)
-        message = {'token': str(AccessToken.for_user(user))}
-        return Response(message, status=status.HTTP_200_OK)
 
 
 class CreateDestroyListMixin(
