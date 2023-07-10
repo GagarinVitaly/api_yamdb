@@ -7,14 +7,14 @@ from reviews.models import (
     Comment,
     Genre,
     Review,
-    Title,)
+    Title, )
 from users.constants import (
     MAX_LEN_EMAIL,
-    MAX_LEN_USERNAME,)
+    MAX_LEN_USERNAME, )
 from users.models import User
 from users.validators import (
     username_validator,
-    forbidden_usernames_validator,)
+    forbidden_usernames_validator, )
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -36,10 +36,10 @@ class SignUpSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=MAX_LEN_USERNAME,
         required=True,
-        validators=[forbidden_usernames_validator, username_validator],)
+        validators=[forbidden_usernames_validator, username_validator], )
     email = serializers.EmailField(
         max_length=MAX_LEN_EMAIL,
-        required=True,)
+        required=True, )
 
     def validate(self, data):
         """Запрет на использование одинакового адреса электронной почты,
@@ -62,9 +62,9 @@ class TokenSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=MAX_LEN_USERNAME,
         required=True,
-        validators=[forbidden_usernames_validator, username_validator],)
-    confirmation_code = serializers.CharField(
-        required=True,)
+        validators=[forbidden_usernames_validator, username_validator], )
+    confirmation_code = serializers.CharField(max_length=None,
+                                              required=True)
 
 
 class UserProfileSerializer(UserSerializer):

@@ -18,18 +18,73 @@
 4. При желании пользователь отправляет PATCH-запрос на /users/me/ и заполняет поля в своём профайле (описание полей — в документации).  
 
 ## Установка
-Для установки на локальной машине потребуется:
-* Скачать файлы проекта из репозитория
-* Установить зависимости из файла requirements.txt
-* Запустить сервер командой *python manage.py runserver* из корня проекта
+Клонируйте репозиторий:
+```
+git clone https://github.com/GagarinVitaly/api_yamdb.git
+```
+
+Измените свою текущую рабочую дерикторию:
+```
+cd /api_yamdb/
+```
+
+Создайте и активируйте виртуальное окружение
+
+```
+Для Windows
+python -m venv venv
+Для Linux
+python3 -m venv venv
+```
+
+```
+Активировать:
+Для Windows
+source venv/Scripts/activate
+Для Linux
+source venv/bin/activate
+```
+
+Обновите pip:
+```
+python3 -m pip install --upgrade pip
+```
+
+Установите зависимости из requirements.txt:
+
+```
+Для Windows и Linux
+pip install -r requirements.txt
+```
+
+Создайте миграции:
+
+```
+Для Windows
+python manage.py migrate
+Для Linux
+python3 manage.py migrate
+```
+## Запустите сервер:
+
+```
+Для Windows
+python manage.py runserver
+Для Linux
+python3 manage.py runserver
+```
+Полная документация прокта (redoc) доступна по адресу http://127.0.0.1:8000/redoc/
 
 ## API
 Передача данных осуществляется по протоколу HTTP.  
 Применяются принципы REST API.  
 Сервер отвечает в формате JSON.  
 Адрес API: http://localhost:8000/api/v1/  
-Документация с примерами команд: http://localhost:8000/redoc/  
 
- 
-__**Более подробную информацию о методах данного API можно получить по адресу http://localhost:8000/redoc/**__
 
+## Авторы:
+- Виталий Гагарин - (Тим-лид, разработчик) 
+
+- Олег Можаров - (разработчик)
+
+- Сергей Конников -  (разработчик)
