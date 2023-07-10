@@ -1,3 +1,4 @@
+MAX_LEN_CODE = 100
 MAX_LEN_EMAIL: int = 90
 MAX_LEN_NAME: int = 256
 MAX_LEN_SLUG: int = 50
