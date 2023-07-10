@@ -1,7 +1,6 @@
 from django.db.models import Avg
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
-from django.utils.crypto import get_random_string
 
 from django_filters import CharFilter, FilterSet, NumberFilter
 from rest_framework import filters, status, viewsets
@@ -12,7 +11,7 @@ from rest_framework.mixins import (
     ListModelMixin, )
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.viewsets import GenericViewSet
 
 from api.permissions import (
@@ -36,7 +35,6 @@ from reviews.models import (
     Review,
     Title, )
 from users.models import User
-from .utils import send_confirmation_code
 from users.constants import MESSAGE
 
 
@@ -72,13 +70,19 @@ class TokenViewSet(viewsets.ViewSet):
         serializer = TokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         username = serializer.validated_data.get('username')
-        confirmation_code = request.data.get('confirmation_code')
+        confirmation_code = request.data.get('csrfmiddlewaretoken')
         user = get_object_or_404(User, username=username)
         if not default_token_generator.check_token(user, confirmation_code):
-            message = {'confirmation_code': 'Код подтверждения невалиден'}
-            return Response(message, status=status.HTTP_400_BAD_REQUEST)
-        message = {'token': str(AccessToken.for_user(user))}
-        return Response(message, status=status.HTTP_200_OK)
+            return Response(
+                "Пользователь или код подтверждения - не совпадают",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        refresh = RefreshToken.for_user(user)
+        return Response(
+            {
+                "access": str(refresh.access_token),
+            }
+        )
 
 
 class UserViewSet(viewsets.ModelViewSet):
