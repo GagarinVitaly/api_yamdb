@@ -10,3 +10,4 @@ YAMDB_EMAIL = 'yamdb@yandex.ru'
 USER = 'user'
 MODERATOR = 'moderator'
 ADMIN = 'admin'
+MESSAGE = "Ваш логин {user}, код подтверждения {token}"
