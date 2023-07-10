@@ -66,27 +66,18 @@ class SignUpViewSet(viewsets.ViewSet):
 
 class TokenViewSet(viewsets.ViewSet):
     queryset = User.objects.all()
-
     serializer_class = TokenSerializer
 
     def create(self, request):
         serializer = TokenSerializer(data=request.data)
-
         serializer.is_valid(raise_exception=True)
-
-        username = serializer.validated_data['username']
-
-        confirmation_code = serializer.validated_data['confirmation_code']
-
+        username = serializer.validated_data.get('username')
+        confirmation_code = request.data.get('confirmation_code')
         user = get_object_or_404(User, username=username)
-
         if not default_token_generator.check_token(user, confirmation_code):
             message = {'confirmation_code': 'Код подтверждения невалиден'}
-
             return Response(message, status=status.HTTP_400_BAD_REQUEST)
-
         message = {'token': str(AccessToken.for_user(user))}
-
         return Response(message, status=status.HTTP_200_OK)
 
 

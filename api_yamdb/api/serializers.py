@@ -64,7 +64,7 @@ class TokenSerializer(serializers.Serializer):
         required=True,
         validators=[forbidden_usernames_validator, username_validator], )
     confirmation_code = serializers.CharField(max_length=None,
-                                              required=True, )
+                                              required=True)
 
 
 class UserProfileSerializer(UserSerializer):
