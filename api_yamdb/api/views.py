@@ -50,8 +50,8 @@ class SignUpViewSet(viewsets.ViewSet):
     def create(self, request):
         serializer = SignUpSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        email = serializer.data['email']
-        username = serializer.data['username']
+        email = serializer.validated_data['email']
+        username = serializer.validated_data['username']
         user, _ = User.objects.get_or_create(email=email, username=username)
         confirmation_code = get_random_string(8)
         user.confirmation_code = confirmation_code
@@ -93,8 +93,8 @@ class TokenViewSet(viewsets.ViewSet):
     def create(self, request):
         serializer = TokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        username = serializer.validated_data['username']
-        confirmation_code = serializer.validated_data['confirmation_code']
+        username = serializer.validated_data.get('username')
+        confirmation_code = serializer.validated_data.get('confirmation_code')
         user = get_object_or_404(User, username=username)
         if not default_token_generator.check_token(user, confirmation_code):
             message = {'confirmation_code': 'Код подтверждения невалиден'}
