@@ -43,8 +43,10 @@ class SignUpSerializer(serializers.Serializer):
         required=True,)
 
     def validate(self, data):
-        """Запрет на использование одинакового адреса электронной почты,
-        имени пользователя."""
+        """
+        Запрет на использование одинакового адреса электронной почты,
+        имени пользователя.
+        """
 
         if not User.objects.filter(
                 username=data.get('username'),
@@ -119,10 +121,27 @@ class TitleCreateSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
         slug_field='slug',
         queryset=Category.objects.all())
+    rating = serializers.FloatField(read_only=True)
 
     class Meta:
         model = Title
-        fields = ('id', 'name', 'year', 'description', 'genre', 'category',)
+        fields = ('id',
+                  'name',
+                  'year',
+                  'description',
+                  'genre',
+                  'category',
+                  'rating')
+
+    def validate(self, data):
+        if data.get('name') == data.get('category'):
+            raise serializers.ValidationError(
+                'Название не должно совпадать с категорией.')
+        return data
+
+    def to_representation(self, instance):
+        serializer = TitleSerializer(instance)
+        return serializer.data
 
 
 class ReviewSerializer(serializers.ModelSerializer):

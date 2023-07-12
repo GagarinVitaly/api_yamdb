@@ -57,7 +57,7 @@ python3 -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-Создайте миграции:
+Примените миграции:
 
 ```
 Для Windows
@@ -65,6 +65,7 @@ python manage.py migrate
 Для Linux
 python3 manage.py migrate
 ```
+
 ## Запустите сервер:
 
 ```
