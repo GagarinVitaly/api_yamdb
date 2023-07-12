@@ -4,12 +4,13 @@ from rest_framework.permissions import (
 
 
 class SuperUserOrAdmin(BasePermission):
-    """доступ к ресурсу, если пользователь является
+    """Доступ к ресурсу, если пользователь является
     администратором или суперпользователем."""
 
     def has_permission(self, request, view):
         return (request.user.is_authenticated and (
                 request.user.is_superuser
+                or request.user.is_staff
                 or request.user.is_admin))
 
 

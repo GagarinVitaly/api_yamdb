@@ -29,7 +29,6 @@ from api.serializers import (
     UserProfileSerializer)
 from reviews.models import (
     Category,
-    Comment,
     Genre,
     Review,
     Title,)
@@ -39,6 +38,7 @@ from .utils import send_confirmation_code, get_token_for_user
 
 class SignUpViewSet(viewsets.ViewSet):
     """ViewSet для регистрации пользователя"""
+
     queryset = User.objects.all()
 
     @action(
@@ -105,6 +105,7 @@ class CreateDestroyListMixin(
 
 class CategoryViewSet(CreateDestroyListMixin):
     """Вьюсет для категорий."""
+
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnly, ]
@@ -115,6 +116,7 @@ class CategoryViewSet(CreateDestroyListMixin):
 
 class GenreViewSet(CreateDestroyListMixin):
     """Вьюсет для жанров."""
+
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [IsAdminOrReadOnly, ]
@@ -136,6 +138,7 @@ class TitleFilter(FilterSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для произведений."""
+
     queryset = Title.objects.all()
     permission_classes = [IsAdminOrReadOnly, ]
     filterset_class = TitleFilter
@@ -155,6 +158,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для отзывов."""
+
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthorModeratorAdminOrReadOnly, ]
@@ -166,6 +170,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет для комментариев."""
+
     serializer_class = CommentSerializer
     permission_classes = [IsAuthorModeratorAdminOrReadOnly, ]
 

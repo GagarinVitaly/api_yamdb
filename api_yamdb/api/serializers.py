@@ -7,14 +7,14 @@ from reviews.models import (
     Comment,
     Genre,
     Review,
-    Title, )
+    Title,)
 from users.constants import (
     MAX_LEN_EMAIL,
-    MAX_LEN_USERNAME, )
+    MAX_LEN_USERNAME,)
 from users.models import User
 from users.validators import (
     username_validator,
-    forbidden_usernames_validator, )
+    forbidden_usernames_validator,)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -33,17 +33,19 @@ class UserSerializer(serializers.ModelSerializer):
 
 class SignUpSerializer(serializers.Serializer):
     """Сериализатор для регистрации пользователя."""
+
     username = serializers.CharField(
         max_length=MAX_LEN_USERNAME,
         required=True,
-        validators=[forbidden_usernames_validator, username_validator], )
+        validators=[forbidden_usernames_validator, username_validator],)
     email = serializers.EmailField(
         max_length=MAX_LEN_EMAIL,
-        required=True, )
+        required=True,)
 
     def validate(self, data):
         """Запрет на использование одинакового адреса электронной почты,
         имени пользователя."""
+
         if not User.objects.filter(
                 username=data.get('username'),
                 email=data.get('email')).exists():
@@ -62,13 +64,14 @@ class TokenSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=MAX_LEN_USERNAME,
         required=True,
-        validators=[forbidden_usernames_validator, username_validator], )
-    confirmation_code = serializers.CharField(max_length=None,
-                                              required=True)
+        validators=[forbidden_usernames_validator, username_validator],)
+    confirmation_code = serializers.CharField(
+        required=True,)
 
 
 class UserProfileSerializer(UserSerializer):
     """Сериализатор профиля пользователя."""
+
     role = serializers.CharField(read_only=True)
 
 
@@ -90,6 +93,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
 class TitleSerializer(serializers.ModelSerializer):
     """Сериализатор для произведений."""
+
     genre = GenreSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
     rating = serializers.FloatField(read_only=True)
@@ -107,6 +111,7 @@ class TitleSerializer(serializers.ModelSerializer):
 
 class TitleCreateSerializer(serializers.ModelSerializer):
     """Сериализатор для создания и обновления произведений."""
+
     genre = serializers.SlugRelatedField(
         many=True,
         slug_field='slug',
@@ -122,6 +127,7 @@ class TitleCreateSerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор для отзывов."""
+
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True)
@@ -143,6 +149,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     """Сериализатор для комментариев."""
+
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True)
