@@ -12,6 +12,7 @@ from users.validators import current_year
 
 class Category(models.Model):
     """Модель категорий."""
+
     name = models.CharField('Категория', max_length=MAX_LEN_NAME)
     slug = models.SlugField(max_length=MAX_LEN_SLUG, unique=True)
 
@@ -24,6 +25,7 @@ class Category(models.Model):
 
 class Genre(models.Model):
     """Модель жанров."""
+
     name = models.CharField('Жанр', max_length=MAX_LEN_NAME)
     slug = models.SlugField(max_length=MAX_LEN_SLUG, unique=True)
 
@@ -36,6 +38,7 @@ class Genre(models.Model):
 
 class Title(models.Model):
     """Модель произведений."""
+
     name = models.CharField('Произведение', max_length=MAX_LEN_NAME)
     year = models.PositiveSmallIntegerField(
         'Год',
@@ -60,6 +63,7 @@ class Title(models.Model):
 
 class Review(models.Model):
     """Модель отзывов."""
+
     author = models.ForeignKey(User, on_delete=models.CASCADE,)
     title = models.ForeignKey(Title, on_delete=models.CASCADE,)
     text = models.TextField('Текст отзыва')

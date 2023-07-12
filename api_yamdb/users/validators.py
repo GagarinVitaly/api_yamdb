@@ -9,6 +9,7 @@ username_validator = UnicodeUsernameValidator()
 
 def forbidden_usernames_validator(value):
     """Определение списка запрещенных имен."""
+
     forbidden_usernames = ['me', ]
     if value.lower() in forbidden_usernames:
         raise ValidationError(
@@ -18,4 +19,5 @@ def forbidden_usernames_validator(value):
 
 def current_year():
     """Определение текущего года."""
+
     return datetime.date.today().year
