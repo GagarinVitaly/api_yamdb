@@ -1,5 +1,7 @@
 from django.contrib import admin
-from api_yamdb.users.models import Category, Genre, Title, User, Review, Comment
+
+from .models import Category, Genre, Title, Review, Comment
+from users.models import User
 
 
 @admin.register(User)
