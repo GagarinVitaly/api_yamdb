@@ -1,7 +1,5 @@
 from django.db.models import Avg
-from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
-from django.utils.crypto import get_random_string
 
 from django_filters import CharFilter, FilterSet, NumberFilter
 from rest_framework import filters, status, viewsets
@@ -12,7 +10,6 @@ from rest_framework.mixins import (
     ListModelMixin,)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.viewsets import GenericViewSet
 
 from api.permissions import (
@@ -36,13 +33,12 @@ from reviews.models import (
     Review,
     Title,)
 from users.models import User
-from .utils import send_confirmation_code
+from .utils import send_confirmation_code, get_token_for_user
 
 
 class SignUpViewSet(viewsets.ViewSet):
     """ViewSet для регистрации пользователя"""
     queryset = User.objects.all()
-    serializer_class = UserSerializer
 
     @action(
         detail=False,
@@ -53,12 +49,8 @@ class SignUpViewSet(viewsets.ViewSet):
         email = serializer.data['email']
         username = serializer.data['username']
         user, _ = User.objects.get_or_create(email=email, username=username)
-        confirmation_code = get_random_string(8)
-        user.confirmation_code = confirmation_code
+        user.confirmation_code = send_confirmation_code(user)
         user.save()
-        send_confirmation_code(
-            email=user.email,
-            confirmation_code=confirmation_code)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -87,8 +79,6 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class TokenViewSet(viewsets.ViewSet):
-    queryset = User.objects.all()
-    serializer_class = TokenSerializer
 
     def create(self, request):
         serializer = TokenSerializer(data=request.data)
@@ -96,11 +86,12 @@ class TokenViewSet(viewsets.ViewSet):
         username = serializer.validated_data['username']
         confirmation_code = serializer.validated_data['confirmation_code']
         user = get_object_or_404(User, username=username)
-        if not default_token_generator.check_token(user, confirmation_code):
-            message = {'confirmation_code': 'Код подтверждения невалиден'}
-            return Response(message, status=status.HTTP_400_BAD_REQUEST)
-        message = {'token': str(AccessToken.for_user(user))}
-        return Response(message, status=status.HTTP_200_OK)
+        if user.confirmation_code != confirmation_code:
+            return Response(
+                {"confirmation_code": ["Неверный код подтверждения"]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return Response(get_token_for_user(user), status=status.HTTP_200_OK)
 
 
 class CreateDestroyListMixin(
