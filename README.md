@@ -28,15 +28,6 @@ git clone https://github.com/GagarinVitaly/api_yamdb.git
 cd /api_yamdb/
 ```
 
-Примените миграции:
-
-```
-Для Windows
-python manage.py migrate
-Для Linux
-python3 manage.py migrate
-```
-
 Создайте и активируйте виртуальное окружение
 
 ```
@@ -64,6 +55,15 @@ python3 -m pip install --upgrade pip
 ```
 Для Windows и Linux
 pip install -r requirements.txt
+```
+
+Примените миграции:
+
+```
+Для Windows
+python manage.py migrate
+Для Linux
+python3 manage.py migrate
 ```
 
 ## Запустите сервер:
