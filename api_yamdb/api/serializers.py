@@ -98,9 +98,8 @@ class GenreSerializer(serializers.ModelSerializer):
 
 class TitleSerializer(serializers.ModelSerializer):
     """Сериализатор для произведений."""
-
-    genre = GenreSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
+    genre = GenreSerializer(many=True, read_only=True)
     rating = serializers.IntegerField(default=0, read_only=True)
 
     class Meta:
@@ -112,15 +111,16 @@ class TitleSerializer(serializers.ModelSerializer):
 class TitleCreateSerializer(TitleSerializer):
     """Сериализатор для создания и обновления произведений."""
 
+    category = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=Category.objects.all()
+    )
     genre = serializers.SlugRelatedField(
         many=True,
         slug_field='slug',
         queryset=Genre.objects.all()
     )
-    category = serializers.SlugRelatedField(
-        slug_field='slug',
-        queryset=Category.objects.all()
-    )
+
     rating = serializers.IntegerField(default=0, read_only=True)
 
     class Meta:
