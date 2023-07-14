@@ -1,3 +1,5 @@
+import datetime
+
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
@@ -7,14 +9,14 @@ from reviews.models import (
     Comment,
     Genre,
     Review,
-    Title,)
+    Title, )
 from users.constants import (
     MAX_LEN_EMAIL,
-    MAX_LEN_USERNAME,)
+    MAX_LEN_USERNAME, )
 from users.models import User
 from users.validators import (
     username_validator,
-    forbidden_usernames_validator,)
+    forbidden_usernames_validator, )
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -33,17 +35,22 @@ class UserSerializer(serializers.ModelSerializer):
 
 class SignUpSerializer(serializers.Serializer):
     """Сериализатор для регистрации пользователя."""
+
     username = serializers.CharField(
         max_length=MAX_LEN_USERNAME,
         required=True,
-        validators=[forbidden_usernames_validator, username_validator],)
+        validators=[forbidden_usernames_validator, username_validator], )
     email = serializers.EmailField(
         max_length=MAX_LEN_EMAIL,
-        required=True,)
+        required=True, )
 
     def validate(self, data):
-        """Запрет на использование одинакового адреса электронной почты,
-        имени пользователя."""
+        """Запрет на использование.
+
+        Одинакового адреса электронной почты,
+        имени пользователя.
+        """
+
         if not User.objects.filter(
                 username=data.get('username'),
                 email=data.get('email')).exists():
@@ -62,13 +69,14 @@ class TokenSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=MAX_LEN_USERNAME,
         required=True,
-        validators=[forbidden_usernames_validator, username_validator],)
+        validators=[forbidden_usernames_validator, username_validator], )
     confirmation_code = serializers.CharField(
-        required=True,)
+        required=True, )
 
 
 class UserProfileSerializer(UserSerializer):
     """Сериализатор профиля пользователя."""
+
     role = serializers.CharField(read_only=True)
 
 
@@ -90,55 +98,49 @@ class GenreSerializer(serializers.ModelSerializer):
 
 class TitleSerializer(serializers.ModelSerializer):
     """Сериализатор для произведений."""
-    genre = GenreSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
-    rating = serializers.FloatField(read_only=True)
+    genre = GenreSerializer(many=True, read_only=True)
+    rating = serializers.IntegerField(default=0, read_only=True)
 
     class Meta:
         model = Title
-        fields = ('id',
-                  'name',
-                  'year',
-                  'description',
-                  'genre',
-                  'category',
-                  'rating')
+        fields = ('id', 'name', 'year', 'rating',
+                  'description', 'genre', 'category')
 
 
-class TitleCreateSerializer(serializers.ModelSerializer):
+class TitleCreateSerializer(TitleSerializer):
     """Сериализатор для создания и обновления произведений."""
+
+    category = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=Category.objects.all()
+    )
     genre = serializers.SlugRelatedField(
         many=True,
         slug_field='slug',
-        queryset=Genre.objects.all())
-    category = serializers.SlugRelatedField(
-        slug_field='slug',
-        queryset=Category.objects.all())
-    rating = serializers.FloatField(read_only=True)
+        queryset=Genre.objects.all()
+    )
+
+    rating = serializers.IntegerField(default=0, read_only=True)
 
     class Meta:
         model = Title
-        fields = ('id',
-                  'name',
-                  'year',
-                  'description',
-                  'genre',
-                  'category',
-                  'rating')
+        fields = ('id', 'name', 'year', 'rating',
+                  'description', 'genre', 'category')
 
     def validate(self, data):
+        current_year = datetime.date.today().year
+        year = data.get('year')
+        if year is not None and year > current_year:
+            raise serializers.ValidationError('Год выпуска не может быть больше текущего года.')
         if data.get('name') == data.get('category'):
-            raise serializers.ValidationError(
-                'Название не должно совпадать с категорией.')
+            raise serializers.ValidationError('Название не должно совпадать с категорией.')
         return data
-
-    def to_representation(self, instance):
-        serializer = TitleSerializer(instance)
-        return serializer.data
 
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор для отзывов."""
+
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True)
@@ -160,6 +162,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     """Сериализатор для комментариев."""
+
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True)
