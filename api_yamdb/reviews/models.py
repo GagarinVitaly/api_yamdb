@@ -5,9 +5,8 @@ from users.constants import (
     MAX_LEN_NAME,
     MAX_LEN_SLUG,
     MAX_SCORE,
-    MIN_SCORE,)
+    MIN_SCORE, )
 from users.models import User
-from users.validators import current_year
 
 
 class Category(models.Model):
@@ -44,12 +43,12 @@ class Title(models.Model):
     description = models.TextField('Описание', blank=True)
     genre = models.ManyToManyField(
         Genre,
-        related_name='titles',)
+        related_name='titles', )
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
         blank=True,
-        null=True,)
+        null=True, )
 
     class Meta:
         ordering = ('id',)
@@ -61,14 +60,14 @@ class Title(models.Model):
 class Review(models.Model):
     """Модель отзывов."""
 
-    author = models.ForeignKey(User, on_delete=models.CASCADE,)
-    title = models.ForeignKey(Title, on_delete=models.CASCADE,)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, )
+    title = models.ForeignKey(Title, on_delete=models.CASCADE, )
     text = models.TextField('Текст отзыва')
     score = models.PositiveSmallIntegerField(
         'Оценка',
         validators=[
             MinValueValidator(limit_value=MIN_SCORE),
-            MaxValueValidator(limit_value=MAX_SCORE)],)
+            MaxValueValidator(limit_value=MAX_SCORE)], )
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
 
     class Meta:
@@ -95,7 +94,7 @@ class Comment(models.Model):
         verbose_name='Комментарии')
     text = models.TextField('Текст комментария')
     pub_date = models.DateTimeField(
-        'Дата добавления', auto_now_add=True,)
+        'Дата добавления', auto_now_add=True, )
 
     class Meta:
         ordering = ('id',)
