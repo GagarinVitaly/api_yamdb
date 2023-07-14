@@ -4,19 +4,10 @@ from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 
-from reviews.models import (
-    Category,
-    Comment,
-    Genre,
-    Review,
-    Title, )
-from users.constants import (
-    MAX_LEN_EMAIL,
-    MAX_LEN_USERNAME, )
+from reviews.models import Category, Comment, Genre, Review, Title
+from users.constants import MAX_LEN_EMAIL, MAX_LEN_USERNAME
 from users.models import User
-from users.validators import (
-    username_validator,
-    forbidden_usernames_validator, )
+from users.validators import username_validator, forbidden_usernames_validator
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -98,8 +89,8 @@ class GenreSerializer(serializers.ModelSerializer):
 
 class TitleSerializer(serializers.ModelSerializer):
     """Сериализатор для произведений."""
-    category = CategorySerializer(read_only=True)
-    genre = GenreSerializer(many=True, read_only=True)
+    category = CategorySerializer(read_only=True, many=False, required=True)
+    genre = GenreSerializer(many=True, read_only=True, required=False)
     rating = serializers.IntegerField(default=0, read_only=True)
 
     class Meta:
@@ -113,6 +104,7 @@ class TitleCreateSerializer(TitleSerializer):
 
     category = serializers.SlugRelatedField(
         slug_field='slug',
+        many=False,
         queryset=Category.objects.all()
     )
     genre = serializers.SlugRelatedField(
