@@ -20,7 +20,7 @@ class Category(models.Model):
         ordering = ('slug',)
 
     def __str__(self):
-        return self.slug
+        return f"{self.name} {self.slug}"
 
 
 class Genre(models.Model):
@@ -33,7 +33,7 @@ class Genre(models.Model):
         ordering = ('id',)
 
     def __str__(self):
-        return self.slug
+        return f"{self.name} {self.slug}"
 
 
 class Title(models.Model):
@@ -50,7 +50,7 @@ class Title(models.Model):
         related_name='titles',)
     category = models.ForeignKey(
         Category,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         blank=True,
         null=True,)
 
