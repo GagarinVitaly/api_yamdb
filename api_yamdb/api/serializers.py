@@ -141,6 +141,10 @@ class TitleCreateSerializer(TitleSerializer):
             )
         return data
 
+    def to_representation(self, title):
+        serializer = TitleSerializer(title)
+        return serializer.data
+
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор для отзывов."""

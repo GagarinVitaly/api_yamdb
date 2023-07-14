@@ -40,10 +40,7 @@ class Title(models.Model):
     """Модель произведений."""
 
     name = models.CharField('Произведение', max_length=MAX_LEN_NAME)
-    year = models.PositiveSmallIntegerField(
-        'Год',
-        blank=True,
-        validators=[MaxValueValidator(limit_value=current_year)],)
+    year = models.IntegerField(verbose_name='Год выпуска', )
     description = models.TextField('Описание', blank=True)
     genre = models.ManyToManyField(
         Genre,
@@ -58,7 +55,7 @@ class Title(models.Model):
         ordering = ('id',)
 
     def __str__(self):
-        return self.slug
+        return self.name
 
 
 class Review(models.Model):
