@@ -132,9 +132,13 @@ class TitleCreateSerializer(TitleSerializer):
         current_year = datetime.date.today().year
         year = data.get('year')
         if year is not None and year > current_year:
-            raise serializers.ValidationError('Год выпуска не может быть больше текущего года.')
+            raise serializers.ValidationError(
+                'Год выпуска не может быть больше текущего года.'
+            )
         if data.get('name') == data.get('category'):
-            raise serializers.ValidationError('Название не должно совпадать с категорией.')
+            raise serializers.ValidationError(
+                'Название не должно совпадать с категорией.'
+            )
         return data
 
 
